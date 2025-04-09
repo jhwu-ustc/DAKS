@@ -1,0 +1,67 @@
+class AdvancedCatalysisParser:
+    def __init__(self, api_key):
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url="https://openrouter.ai/api/v1",
+        )
+        self.model_name = "deepseek/deepseek-chat"
+        self.required_columns = [
+            "catalyst", "catalyst_substrate", "SA_element", "SA_valence", "co_elements", 
+            "oxidant", "pollutants", "pollutant_constant", "dose_catalyst", "dose_oxidant", 
+            "pH", "catalyst_cycles", "pilot_pollutant", "pilot_time", "ORS", "EPR_signals", 
+            "quencher", "DOI"
+        ]
+    
+    def generate_prompt(self, text):
+        """Generated prompt"""
+        return f"""
+        ***Structured Data Extraction Instructions***
+        Please extract the following information from the text and return it in a single-layer JSON format:
+        Please strictly follow the following requirements:
+        1. The output must be a valid, directly parseable standard JSON
+        2. Use English double quotes
+        3. Missing fields should be represented as null: 
+        - catalyst: catalyst name or designation
+        - catalyst_substrate: substrate or support of the single-atom catalyst
+        - SA_element: element type of the single atom
+        - SA_valence: the valence or oxidation state of the single atom
+        - co_elements: type of coordinating atoms
+        - oxidant: oxidant used in the catalytic oxidations (such as H2O2, PMS, PDS, PAA)
+        - pollutants: types and concentrations of target pollutants in the kinetic studies, formatted as concentration followed by pollutant in parentheses (if multiple pollutants are present, separate them with commas)
+        - pollutant_constant: maximum degradation rate constant of the target pollutant(s) (if multiple pollutants are involved, separate them with commas, and specify the corresponding pollutants in parentheses)
+        - dose_catalyst: catalyst dosage for the catalytic reaction (in experimental group with the highest kinetic constant)
+        - dose_oxidant: oxidant dosage for the catalytic reaction (in experimental group with the highest kinetic constant)
+        - pH: pH condition of the catalytic reaction (in experimental group with the highest kinetic constant)
+        - catalyst_cycles: number of catalytic cycles for the catalyst (reusability)
+        - pilot_pollutant: type and concentration of target pollutant(s) in the pilot-scale experiment, formatted as concentration followed by pollutant in parentheses (if multiple pollutants are present, separate them with commas)
+        - pilot_time: duration or reaction time of the pilot-scale experiment
+        - ORS: dominant oxidative reactive species identified in mechanism studies (ORS; if multiple types, separate them with commas)
+        - EPR_signals: signals observed in the spin-trapping EPR tests (such as DMPO-OH, DMPO-R; if multiple signals are observed, separate them with commas)
+        - quencher: quenchers, inhibitors, or scavengers used in the mechanism studies, formatted as inhibitory efficiency followed by the type or chemical formular of the quencher in parentheses (if multiple pollutants are present, separate them with commas)
+        - DOI: DOI of the literature
+        
+        ***Example JSON Structure***
+        {{
+            "catalyst": "Pt1/Fe2O3",
+            "catalyst_substrate": "Fe2O3",
+            "SA_element": "Pt",
+            "SA_valence": "+2",
+            "co_elements": "O, Fe",
+            "oxidant": "H2O2",
+            "pollutants": "10 mg/L (phenol), 5 mg/L (benzene)",
+            "pollutant_constant": "0.05 min-1 (phenol), 0.03 min-1 (benzene)",
+            "dose_catalyst": "0.1 g/L",
+            "dose_oxidant": "10 mM",
+            "pH": "7.0",
+            "catalyst_cycles": "5",
+            "pilot_pollutant": "20 mg/L (phenol)",
+            "pilot_time": "2 hours",
+            "ORS": "OH, SO4-",
+            "EPR_signals": "DMPO-OH, DMPO-SO4",
+            "quencher": "90% (ethanol), 85% (tert-butanol)",
+            "DOI": "10.1039/d0ee00000a"
+        }}
+        
+        ***Text to be Parsed***
+        {text}
+        """
