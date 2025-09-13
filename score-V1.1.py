@@ -203,10 +203,11 @@ class DeepSeekValidator:
 
 if __name__ == "__main__":
     validator = DeepSeekValidator(
-        api_key="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"
+        api_key=""
     )
     validator.process_files(
         "results-gpt-4o.csv",
         "results-standard.csv",
         "final_scores-GPT-4o.csv"
     )
+
